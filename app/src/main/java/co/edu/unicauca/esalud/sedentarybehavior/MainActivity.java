@@ -3,6 +3,8 @@ package co.edu.unicauca.esalud.sedentarybehavior;
 import android.content.DialogInterface;
 import android.content.pm.ActivityInfo;
 import android.os.Environment;
+import android.os.Handler;
+import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -37,6 +39,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import co.edu.unicauca.esalud.sedentarybehavior.Background.Contador;
+
 
 public class MainActivity extends AppCompatActivity implements SensorEventListener, View.OnClickListener{
 
@@ -58,6 +62,23 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     String currentPlace="0";
 
+
+    Handler handler = new Handler() {
+        @Override
+        public void handleMessage(Message msg){
+            if(msg.what == Contador.SECOND)
+            {
+                int second=msg.arg1;
+                //reloj.setText("" + second);
+            }else{
+                //GameoverDesp();
+            }
+
+        }
+    };
+
+
+    Contador thread;
 
     /********************** Utilizado por ESTIMOTE *******************************************/
 
@@ -134,6 +155,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         /**la app siempre se mantiene en portrait**/
         this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         Log.d("LOG", "aplicacion iniciada");
+
+        thread=null;
 
 
         /****************************** ESTIMOTE ***********************************/
