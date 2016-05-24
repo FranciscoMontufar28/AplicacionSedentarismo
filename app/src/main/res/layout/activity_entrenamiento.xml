@@ -9,6 +9,7 @@
     tools:context="co.edu.unicauca.esalud.sedentarybehavior.EntrenamientoActivity">
 
     <TextView
+        android:id="@+id/RelojConteo"
         android:layout_weight="5"
         android:gravity="center"
         android:textColor="#fff"

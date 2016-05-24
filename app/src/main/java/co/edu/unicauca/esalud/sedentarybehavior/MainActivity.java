@@ -65,6 +65,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     //Contador thread;
 
+
+
     /********************** Utilizado por ESTIMOTE *******************************************/
 
     private static final Map<String, List<String>> PLACES_BY_BEACONS;
