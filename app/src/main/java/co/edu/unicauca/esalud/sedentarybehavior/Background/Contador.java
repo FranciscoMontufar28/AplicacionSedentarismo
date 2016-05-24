@@ -51,6 +51,7 @@ public class Contador extends Thread{
                     if(cont==0){
 
                         msg.what = STOP;
+                        running = false;
                     }
 
                     handler.sendMessage(msg);

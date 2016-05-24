@@ -28,12 +28,13 @@ public class EntrenamientoActivity extends AppCompatActivity implements View.OnC
 
     TextView reloj;
     Button btnIniciar, btnParar;
+    Contador thread;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_entrenamiento);
-
+        thread = null;
         reloj = (TextView) findViewById(R.id.RelojConteo);
 
         btnIniciar = (Button) findViewById(R.id.BtnIniciarEntrenamieto);
@@ -41,6 +42,11 @@ public class EntrenamientoActivity extends AppCompatActivity implements View.OnC
 
         btnIniciar.setOnClickListener(this);
         btnParar.setOnClickListener(this);
+
+        if (thread == null){
+            thread = new Contador(handler);
+            thread.start();
+        }
     }
 
     @Override
