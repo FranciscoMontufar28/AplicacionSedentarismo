@@ -63,22 +63,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     String currentPlace="0";
 
 
-    Handler handler = new Handler() {
-        @Override
-        public void handleMessage(Message msg){
-            if(msg.what == Contador.SECOND)
-            {
-                int second=msg.arg1;
-                //reloj.setText("" + second);
-            }else{
-                //GameoverDesp();
-            }
-
-        }
-    };
-
-
-    Contador thread;
+    //Contador thread;
 
     /********************** Utilizado por ESTIMOTE *******************************************/
 
@@ -87,13 +72,13 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     // TODO: replace "<major>:<minor>" strings to match your own beacons.
     static {
         Map<String, List<String>> placesByBeacons = new HashMap<>();
-        placesByBeacons.put("9682:5279", new ArrayList<String>() {{
+        placesByBeacons.put("51275:57582", new ArrayList<String>() {{
             add("Cama");
             // se lee: "cama" esta mas cercana
             // al beacon con major 9682 y minor 5279
         }});
 
-         placesByBeacons.put("15322:52340", new ArrayList<String>() {{
+         placesByBeacons.put("11637:25398", new ArrayList<String>() {{
             add("Escritorio");
          }});
 
@@ -153,10 +138,10 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         }
 
         /**la app siempre se mantiene en portrait**/
-        this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+        //this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         Log.d("LOG", "aplicacion iniciada");
 
-        thread=null;
+        //thread=null;
 
 
         /****************************** ESTIMOTE ***********************************/
@@ -296,6 +281,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         /**creo un buffer para descargar el archivo con los datos**/
         sensorRead = user_id+","+activity+","+fecha2+","+event.values[SensorManager.DATA_X]+","+event.values[SensorManager.DATA_Y]+","+event.values[SensorManager.DATA_Z]+","+currentPlace+";";
         buff = buff +"\n"+ sensorRead;
+
+        Toast.makeText(this, currentPlace, Toast.LENGTH_LONG).show();
 
     }
 

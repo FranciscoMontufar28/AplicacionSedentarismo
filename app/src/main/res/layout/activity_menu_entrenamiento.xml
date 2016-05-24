@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingTop="150dp"
+    android:orientation="vertical"
+    android:background="@drawable/fondo"
+    tools:context="co.edu.unicauca.esalud.sedentarybehavior.MenuEntrenamientoActivity">
+
+    <Button
+        android:background="#9E9E9E"
+        android:id="@+id/btnSentadoEscritorio"
+        android:layout_gravity="center"
+        android:layout_width="300dp"
+        android:layout_height="wrap_content"
+        android:text="Sentado en el escritorio"
+        android:layout_marginBottom="5dp"/>
+
+    <Button
+        android:background="#9E9E9E"
+        android:id="@+id/btnParadoEscritorio"
+        android:layout_gravity="center"
+        android:layout_width="300dp"
+        android:layout_height="wrap_content"
+        android:text="Parado cerca del escritorio"
+        android:layout_marginBottom="5dp"/>
+
+    <Button
+        android:background="#9E9E9E"
+        android:id="@+id/btnSentadoCama"
+        android:layout_gravity="center"
+        android:layout_width="300dp"
+        android:layout_height="wrap_content"
+        android:text="Sentado en la cama"
+        android:layout_marginBottom="5dp"/>
+
+    <Button
+        android:background="#9E9E9E"
+        android:id="@+id/btnAcostadoCama"
+        android:layout_gravity="center"
+        android:layout_width="300dp"
+        android:layout_height="wrap_content"
+        android:text="Acostado en la cama"/>
+
+</LinearLayout>
