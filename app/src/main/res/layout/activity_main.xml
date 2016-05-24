@@ -5,97 +5,120 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     android:paddingBottom="@dimen/activity_vertical_margin" tools:context=".MainActivity">
 
-    <TextView
+    <ListView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceMedium"
-        android:text="Medium Text"
-        android:id="@+id/xID"
-        android:layout_marginBottom="47dp"
-        android:layout_above="@+id/yID"
-        android:layout_alignParentStart="true" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceMedium"
-        android:text="Medium Text"
-        android:id="@+id/yID"
-        android:layout_centerVertical="true"
-        android:layout_alignStart="@+id/zID" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceMedium"
-        android:text="Medium Text"
-        android:id="@+id/zID"
-        android:layout_marginTop="40dp"
-        android:layout_below="@+id/yID"
-        android:layout_alignStart="@+id/xID" />
-
-    <RadioGroup
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_above="@+id/xID"
-        android:layout_centerHorizontal="true"
-        android:orientation="vertical"
-        android:id="@+id/RadioGroupActivity">
-
-        <RadioButton
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Sentado en el escritorio"
-            android:id="@+id/radioButtonSentadoenelsescritorio"
-            android:checked="false" />
-
-        <RadioButton
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Parado cerca al escritorio"
-            android:id="@+id/radioButtonParadocercaalescritorio"
-            android:checked="false" />
-
-        <RadioButton
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Sentado en la cama"
-            android:id="@+id/radioButtonSentadoenlacama"
-            android:checked="false" />
-
-        <RadioButton
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Acostado en la cama"
-            android:id="@+id/radioButtonAcostadoenlacama"
-            android:checked="false" />
-    </RadioGroup>
+        android:id="@+id/listView"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
+        android:layout_above="@+id/startstopbutton"
+        android:layout_below="@+id/progressBar" />
 
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Grabar"
-        android:id="@+id/buttonGrabar"
+        android:text="Loading..."
+        android:id="@+id/startstopbutton"
         android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true" />
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_toStartOf="@+id/space"
+        android:layout_toLeftOf="@+id/space" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Loading..."
+        android:id="@+id/savebutton"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+        android:layout_toEndOf="@+id/space"
+        android:layout_toRightOf="@+id/space"
+        android:layout_alignTop="@+id/startstopbutton" />
+
+    <ProgressBar
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/progressBar"
+        android:layout_alignBottom="@+id/editText_id"
+        android:layout_alignRight="@+id/radioGroup_Activities"
+        android:layout_alignEnd="@+id/radioGroup_Activities" />
+
+    <Space
+        android:layout_width="16dp"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:focusable="false"
+        android:id="@+id/space" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text="ID"
+        android:id="@+id/textView_id"
+        android:layout_centerVertical="true"
+        android:layout_toLeftOf="@+id/editText_id"
+        android:layout_toStartOf="@+id/editText_id" />
 
     <EditText
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:inputType="numberDecimal"
         android:ems="10"
-        android:id="@+id/editTextId"
-        android:layout_marginBottom="29dp"
-        android:layout_above="@+id/buttonGrabar"
+        android:id="@+id/editText_id"
+        android:layout_centerVertical="true"
         android:layout_centerHorizontal="true" />
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceMedium"
-        android:text="Id"
-        android:id="@+id/textViewId"
-        android:layout_alignBottom="@+id/editTextId"
-        android:layout_alignEnd="@+id/zID"
-        android:layout_marginEnd="40dp" />
+    <RadioGroup
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/radioGroup_Activities"
+        android:layout_above="@+id/progressBar"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true">
+
+        <RadioButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Viendo tv sentado"
+            android:id="@+id/radioButton_tv_sitting"
+            android:checked="true" />
+
+        <RadioButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Viendo tv recostado"
+            android:id="@+id/radioButton_tv_lying"
+            android:checked="false" />
+
+        <RadioButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Trabajando en el computador"
+            android:id="@+id/radioButton_computer"
+            android:checked="false" />
+
+        <RadioButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Almorzando-comiendo"
+            android:id="@+id/radioButton_eating"
+            android:checked="false" />
+
+        <RadioButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Conduciendo automovil"
+            android:id="@+id/radioButton_driving"
+            android:checked="false" />
+
+        <RadioButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Transportado en automovil"
+            android:id="@+id/radioButton_transport"
+            android:checked="false" />
+    </RadioGroup>
+
 </RelativeLayout>

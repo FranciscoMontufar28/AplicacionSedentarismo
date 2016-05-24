@@ -1,7 +1,9 @@
 package co.edu.unicauca.esalud.sedentarybehavior;
 
+import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.pm.ActivityInfo;
+import android.media.MediaScannerConnection;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
@@ -15,8 +17,11 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
@@ -30,13 +35,16 @@ import com.estimote.sdk.Utils;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TimeZone;
 import java.util.UUID;
 
 import co.edu.unicauca.esalud.sedentarybehavior.Background.Contador;
@@ -44,45 +52,39 @@ import co.edu.unicauca.esalud.sedentarybehavior.Background.Contador;
 
 public class MainActivity extends AppCompatActivity implements SensorEventListener, View.OnClickListener{
 
-    /**declaro widgets y variables**/
-    TextView x,y,z;
-    private Sensor mAccelerometer;
-    String buff, sensorRead;
-    String activity = "";
-    String user_id = "";
-    public boolean sdDisponible = false;
-    public boolean sdAccesoEscritura = false;
-    RadioGroup radioGroupActivity;
-    RadioButton radioButtonSentado_en_el_escritorio;
-    RadioButton radioButtonParado_cerca_al_escritorio;
-    RadioButton radioButtonAcostado_en_la_cama;
-    RadioButton radioButtonSentado_en_la_cama;
-    EditText editTextId;
-    Button buttonGrabar;
+    private String id, activity_name2, buff;
+    private android.hardware.Sensor mAccelerometer;
 
-    String currentPlace="0";
-
-
-    //Contador thread;
-
-
+    private final ArrayList<Sensor> sensors = new ArrayList<Sensor>();
+    private ArrayAdapter<Sensor> adapter;
+    private Button startStopButton, saveButton;
+    EditText idEditText;
+    RadioGroup radioGroup_Activities;
+    RadioButton radioButton_tv_sitting;
+    RadioButton radioButton_tv_lying;
+    RadioButton radioButton_computer;
+    RadioButton radioButton_eating;
+    RadioButton radioButton_driving;
+    RadioButton radioButton_transport;
 
     /********************** Utilizado por ESTIMOTE *******************************************/
+
+    int current_location=0, current_location2=0;
 
     private static final Map<String, List<String>> PLACES_BY_BEACONS;
 
     // TODO: replace "<major>:<minor>" strings to match your own beacons.
     static {
         Map<String, List<String>> placesByBeacons = new HashMap<>();
-        placesByBeacons.put("51275:57582", new ArrayList<String>() {{
+        placesByBeacons.put("9682:5279", new ArrayList<String>() {{
             add("Cama");
             // se lee: "cama" esta mas cercana
             // al beacon con major 9682 y minor 5279
         }});
 
-         placesByBeacons.put("11637:25398", new ArrayList<String>() {{
+        placesByBeacons.put("15322:52340", new ArrayList<String>() {{
             add("Escritorio");
-         }});
+        }});
 
         PLACES_BY_BEACONS = Collections.unmodifiableMap(placesByBeacons);
     }
@@ -100,51 +102,44 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     /*****************************************************************/
 
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        /**instancio los widgets**/
-        x = (TextView)findViewById(R.id.xID);
-        y = (TextView)findViewById(R.id.yID);
-        z = (TextView)findViewById(R.id.zID);
-        radioGroupActivity = (RadioGroup)findViewById(R.id.RadioGroupActivity);
-        radioButtonSentado_en_el_escritorio = (RadioButton)findViewById(R.id.radioButtonSentadoenelsescritorio);
-        radioButtonParado_cerca_al_escritorio = (RadioButton)findViewById(R.id.radioButtonParadocercaalescritorio);
-        radioButtonSentado_en_la_cama = (RadioButton)findViewById(R.id.radioButtonSentadoenlacama);
-        radioButtonAcostado_en_la_cama = (RadioButton)findViewById(R.id.radioButtonAcostadoenlacama);
-        editTextId = (EditText)findViewById(R.id.editTextId);
+        // Get listview
+        ListView sensorsView = (ListView)findViewById(R.id.listView);
+        // Setup progress bar
+        ProgressBar progressBar = (ProgressBar)findViewById(R.id.progressBar);
+        sensorsView.setEmptyView(progressBar);
 
-        buttonGrabar = (Button)findViewById(R.id.buttonGrabar);
-        buttonGrabar.setOnClickListener(this);
+        // Add listview display adapter
+        sensorsView.setAdapter(adapter);
 
-        /**Compruebo el estado de la memoria externa (tarjeta SD)**/
-        String estado = Environment.getExternalStorageState();
+        // Setup start/stop button
+        startStopButton = (Button)findViewById(R.id.startstopbutton);
+        startStopButton.setOnClickListener(this);
+        startStopButton.setText("EMPEZAR");
 
-        if (estado.equals(Environment.MEDIA_MOUNTED))
-        {
-            sdDisponible = true;
-            sdAccesoEscritura = true;
-        }
-        else if (estado.equals(Environment.MEDIA_MOUNTED_READ_ONLY))
-        {
-            sdDisponible = true;
-            sdAccesoEscritura = false;
-        }
-        else
-        {
-            sdDisponible = false;
-            sdAccesoEscritura = false;
-        }
+        // Setup save button
+        saveButton = (Button)findViewById(R.id.savebutton);
+        saveButton.setOnClickListener(this);
+        saveButton.setText("GUARDAR");
+        saveButton.setEnabled(false);
 
-        /**la app siempre se mantiene en portrait**/
-        //this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+        // Setup ID edit text
+
+        idEditText = (EditText)findViewById(R.id.editText_id);
+        radioGroup_Activities = (RadioGroup)findViewById(R.id.radioGroup_Activities);
+        radioButton_tv_sitting = (RadioButton)findViewById(R.id.radioButton_tv_sitting);
+        radioButton_tv_lying = (RadioButton)findViewById(R.id.radioButton_tv_lying);
+        radioButton_computer = (RadioButton)findViewById(R.id.radioButton_computer);
+        radioButton_eating = (RadioButton)findViewById(R.id.radioButton_eating);
+        radioButton_driving = (RadioButton)findViewById(R.id.radioButton_driving);
+        radioButton_transport = (RadioButton)findViewById(R.id.radioButton_transport);
+
+        this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         Log.d("LOG", "aplicacion iniciada");
-
-        //thread=null;
-
 
         /****************************** ESTIMOTE ***********************************/
 
@@ -159,28 +154,55 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                     List<String> place = placesNearBeacon(nearestBeacon);
                     // TODO: update the UI here
                     /**Log.d("Beacon", "lugar inmediato: " + place);
-                    Log.d("Beacon", String.valueOf(place));**/
+                     Log.d("Beacon", String.valueOf(place));**/
 
                     /**Se calcula la proximidad al beacon, si esta cerca, se pone el indicador adecuado en el dataset**/
                     Utils.Proximity proximity = Utils.computeProximity(nearestBeacon);
-                    if (proximity == Utils.Proximity.NEAR || proximity == Utils.Proximity.IMMEDIATE) {
-                        Log.d("DISTANCIA A BEACON CAMA", "CERCA");
+                    if (proximity == Utils.Proximity.FAR || proximity == Utils.Proximity.NEAR || proximity == Utils.Proximity.IMMEDIATE) {
+
                         if (String.valueOf(place).equals("[Cama]")) {
-                            Log.d("LUGAR", "cama");
-                            currentPlace = "1";
+                            Log.d("LUGAR", "tv");
+                            current_location = 1;
                         }
                         if (String.valueOf(place).equals("[Escritorio]")) {
                             Log.d("LUGAR", "Escritorio");
-                            currentPlace = "2";
+                            current_location = 2;
                         }
-                    }else{currentPlace = "0";}/** else if (proximity == Utils.Proximity.FAR) {
-                        Log.d("DISTANCIA A BEACON", "lejos");
-                    }else if (proximity == Utils.Proximity.IMMEDIATE) {
-                        Log.d("DISTANCIA A BEACON", "muy cerca");**/
-                }else{
+                    } else {
+                        current_location = 0;
+                    }
+
+                    if(list.size()>1) {
+                        Beacon nearestBeacon2 = list.get(1);
+                        List<String> place2 = placesNearBeacon(nearestBeacon2);
+                        /**Se calcula la proximidad al  2 beacon, si esta cerca, se pone el indicador adecuado en el dataset**/
+                        Utils.Proximity proximity2 = Utils.computeProximity(nearestBeacon2);
+                        if (proximity2 == Utils.Proximity.FAR || proximity2 == Utils.Proximity.NEAR || proximity2 == Utils.Proximity.IMMEDIATE) {
+
+                            if (String.valueOf(place2).equals("[Cama]")) {
+                                Log.d("LUGAR", "tv");
+                                current_location2 = 1;
+                            }
+                            if (String.valueOf(place2).equals("[Escritorio]")) {
+                                Log.d("LUGAR", "Escritorio");
+                                current_location2 = 2;
+                            }
+                        } else {
+                            current_location2 = 0;
+                        }
+                    }
+
+
+
+                    /** else if (proximity == Utils.Proximity.FAR) {
+                     Log.d("DISTANCIA A BEACON", "lejos");
+                     }else if (proximity == Utils.Proximity.IMMEDIATE) {
+                     Log.d("DISTANCIA A BEACON", "muy cerca");**/
+                } else {
 
                     /**Como no se detectan Beacons, el indicador retorna a "0" **/
-                    currentPlace="0";
+                    current_location = 0;
+                    current_location2 = 0;
 
                 }
             }
@@ -192,162 +214,159 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     }
 
-
-    protected void onResume()
-    {
-
+    @Override
+    protected void onResume() {
         super.onResume();
+        //estimote requires turn on BT and to access GPS location?
+        //SystemRequirementsChecker.checkWithDefaultDialogs(this);
 
-        /**Estimote solicita encender el bt4**/
-        SystemRequirementsChecker.checkWithDefaultDialogs(this);
 
-        Log.d("LOG", "aplicacion resumida");
     }
 
-
-    protected void onPause()
-    {
-        SensorManager mSensorManager=(SensorManager) getSystemService(SENSOR_SERVICE);
-        mSensorManager.unregisterListener(this, mAccelerometer);
-        Log.d("LOG", "aplicacion en pausa");
+    @Override
+    protected void onPause() {
         super.onPause();
+        // Always unregister callbacks
+        //if(dataloggingReceiver != null) {
+        //    unregisterReceiver(dataloggingReceiver);
+        //}
+        //SensorManager mSensorManager=(SensorManager) getSystemService(SENSOR_SERVICE);
+        //mSensorManager.unregisterListener(this, mAccelerometer);
     }
 
+    private void finishAndSaveReading() {
 
-    protected void onStop()
-    {
-        SensorManager mSensorManager=(SensorManager) getSystemService(SENSOR_SERVICE);
-        mSensorManager.unregisterListener(this, mAccelerometer);
-        Log.d("LOG", "aplicacion finalizada");
-        //beaconManager.stopRanging(region);
-        super.onStop();
-    }
-
+        Calendar c = Calendar.getInstance();
+        String date = Integer.toString(c.get(Calendar.DATE));
+        String hour = Integer.toString(c.get(Calendar.HOUR));
+        String minutes = Integer.toString(c.get(Calendar.MINUTE));
+        String seconds = Integer.toString(c.get(Calendar.SECOND));
+        String am = Integer.toString(c.get(Calendar.AM_PM));
 
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-
-            if(sdDisponible ==true && sdAccesoEscritura ==true) {
-
-                Date horaActual = new Date();
-                String fecha = (horaActual.getYear() + 1900) + "" + (horaActual.getMonth() + 1) + "" + horaActual.getDate() + "" + horaActual.getHours() + "" + horaActual.getMinutes() + "" + horaActual.getSeconds();
-                writeFile("dataset" + "_" +user_id + "_" + fecha + ".txt", buff);
-            }
-        }
-
-        return super.onOptionsItemSelected(item);
-    }
-
-
-
-    public void writeFile(String filename, String textfile){
+        // Get/create our application's save folder
         try {
 
-            File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getAbsolutePath() + "/DatosExperimento/", filename );
-            OutputStreamWriter outw = new OutputStreamWriter(new FileOutputStream(file));
-            outw.write(textfile);
-            outw.close();
+            String filename = id + " telefono " + activity_name2 + " " + date+ " "+hour+":"+minutes+":"+seconds+":"+am+ ".csv";
+            File dir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getAbsolutePath() + "/DatosExperimento/");
+            dir.mkdir();
+            // Create the file in the <activity name>-<sensor name>-<system time>.csv format
+            File file = new File(dir, filename);
+            FileOutputStream outputStream = new FileOutputStream(file);
+            // Write the colunm headers
+            outputStream.write("id,Time(ms),X(mG),Y(mG),Z(mG),Location,Location2,Classification\n".getBytes());
+            outputStream.write(buff.getBytes());
+            outputStream.close();
+            // Workaround for Android bug #38282
+            MediaScannerConnection.scanFile(this, new String[]{file.getAbsolutePath()}, null, null);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
-        } catch (Exception e) {}
+        Log.w("MainActivity", sensors.toString());
     }
 
+    private AlertDialog displayDialog(String title, String message) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage(message)
+                .setTitle(title)
+                .setNeutralButton("OK", null);
+        AlertDialog dia = builder.create();
+        dia.show();
+        return dia;
+    }
 
     @Override
     public void onSensorChanged(SensorEvent event) {
-        this.x.setText("X =" + event.values[SensorManager.DATA_X]);
-        this.y.setText("Y =" + event.values[SensorManager.DATA_Y]);
-        this.z.setText("Z =" + event.values[SensorManager.DATA_Z]);
 
-        //Long tsLong = System.currentTimeMillis();
-        //String ts = tsLong.toString();
-
-        Date horaActual2 = new Date();
-        String fecha2 = (horaActual2.getYear() + 1900) + "" + (horaActual2.getMonth() + 1) + "" + horaActual2.getDate() + "" + horaActual2.getHours() + "" + horaActual2.getMinutes() + "" + horaActual2.getSeconds();
-
-
+        long time = System.currentTimeMillis() + TimeZone.getDefault().getRawOffset() + TimeZone.getDefault().getDSTSavings();
         /**creo un buffer para descargar el archivo con los datos**/
-        sensorRead = user_id+","+activity+","+fecha2+","+event.values[SensorManager.DATA_X]+","+event.values[SensorManager.DATA_Y]+","+event.values[SensorManager.DATA_Z]+","+currentPlace+";";
+        String sensorRead = id+","+time+","+event.values[SensorManager.DATA_X]+","+event.values[SensorManager.DATA_Y]+","+event.values[SensorManager.DATA_Z]+","+current_location+","+current_location2+","+activity_name2+";";
         buff = buff +"\n"+ sensorRead;
-
-        Toast.makeText(this, currentPlace, Toast.LENGTH_LONG).show();
-
     }
 
     @Override
-    public void onAccuracyChanged(Sensor sensor, int accuracy) {
+    public void onAccuracyChanged(android.hardware.Sensor sensor, int accuracy) {
 
     }
 
     @Override
     public void onClick(View v) {
 
-        if(v.equals(buttonGrabar)) {
+        if(v.equals(startStopButton)) {
+            if (idEditText.getText().length() == 0) {
+                displayDialog("ID", "Ingresa el ID del participante");
+            } else {
+                if (startStopButton.getText().equals("EMPEZAR")){
+                    // Start recording
 
-            /**Obtengo la actividad que se va a realizar y el id del usuario**/
-            if (radioButtonSentado_en_el_escritorio.isChecked() == true) {
-                activity = "Sitting_in_desk";
-            } else if (radioButtonParado_cerca_al_escritorio.isChecked() == true) {
-                activity = "Standing_near_the_desk";
-            } else if (radioButtonAcostado_en_la_cama.isChecked() == true) {
-                activity = "Lying_in_bed";
-            } else if (radioButtonSentado_en_la_cama.isChecked() == true) {
-                activity = "Sitting_in_bed";
-            }
+                    id = idEditText.getText().toString();
 
-            user_id = editTextId.getText().toString();
+                    /**Obtengo la actividad que se va a realizar**/
 
+                    activity_name2 = "";
+                    if (radioButton_tv_sitting.isChecked()) {
+                        activity_name2 = "Viendo tv sentado";
+                    } else if (radioButton_tv_lying.isChecked()) {
+                        activity_name2 = "Viendo tv recostado";
+                    } else if (radioButton_eating.isChecked()) {
+                        activity_name2 = "Almorzando-Comiendo";
+                    } else if (radioButton_computer.isChecked()) {
+                        activity_name2 = "Trabajando en el computador";
+                    } else if (radioButton_driving.isChecked()) {
+                        activity_name2 = "Conduciendo automovil";
+                    } else if (radioButton_transport.isChecked()) {
+                        activity_name2 = "Transportado en automovil";
+                    }
 
-            /**Valido el ingreso de los datos**/
+                    if (activity_name2.length() != 0 && id.length() != 0) {
 
-            if(activity.length()==0){
-
-                Toast.makeText(this, "Selecciona la actividad a realizar", Toast.LENGTH_LONG).show();
-
-            }else if(user_id.length()==0){
-
-                Toast.makeText(this, "Ingresa un ID", Toast.LENGTH_LONG).show();
-
-            }
-
-            if (activity.length()!=0 && user_id.length()!=0){
-
-                /**declarar el sensor**/
-                SensorManager sm = (SensorManager)getSystemService(SENSOR_SERVICE);
-                List<Sensor> sensors = sm.getSensorList(Sensor.TYPE_ACCELEROMETER);
+                        /**declarar el sensor**/
+                        SensorManager sm = (SensorManager) getSystemService(SENSOR_SERVICE);
+                        List<android.hardware.Sensor> sensors = sm.getSensorList(android.hardware.Sensor.TYPE_ACCELEROMETER);
 
 
-                /**asegurarse de que el telefono tenga acelerometro**/
-                if(sensors.size()>0)
-                {
-                    /** Elijo una frecuencia de muestreo de 50 milisegundos (50000 microsegundos)**/
-                    sm.registerListener(this, sensors.get(0), 50000);
+                        /**asegurarse de que el telefono tenga acelerometro**/
+                        if (sensors.size() > 0) {
+                            /** Elijo una frecuencia de muestreo de 25hz 40 milisegundos (40000 microsegundos)**/
+                            sm.registerListener(this, sensors.get(0), 40000);
 
-                    beaconManager.connect(new BeaconManager.ServiceReadyCallback() {
-                        @Override
-                        public void onServiceReady() {
-                            beaconManager.startRanging(region);
+                            beaconManager.connect(new BeaconManager.ServiceReadyCallback() {
+                                @Override
+                                public void onServiceReady() {
+                                    beaconManager.startRanging(region);
+                                }
+                            });
+
                         }
-                    });
+
+                    }
+
+                    startStopButton.setText("PARAR");
+                    saveButton.setEnabled(false);
+                } else {
+                    // End recording
+                    startStopButton.setText("EMPEZAR");
+                    saveButton.setEnabled(true);
+                    // stop beacon detection
+                    beaconManager.disconnect();
+                    // stop accelerometer recording
+                    SensorManager mSensorManager=(SensorManager) getSystemService(SENSOR_SERVICE);
+                    List<android.hardware.Sensor> sensors = mSensorManager.getSensorList(android.hardware.Sensor.TYPE_ACCELEROMETER);
+                    mSensorManager.unregisterListener(this);
+                    mAccelerometer = null;
 
                 }
 
             }
+        }else{
+            if(v.equals(saveButton)){
 
+                finishAndSaveReading();
+                Toast.makeText(MainActivity.this,"Datos Guardados", Toast.LENGTH_LONG).show();
+
+            }
         }
     }
+
 }
