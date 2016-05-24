@@ -1,17 +1,12 @@
 package co.edu.unicauca.esalud.sedentarybehavior;
 
 import android.app.AlertDialog;
-import android.content.DialogInterface;
 import android.content.pm.ActivityInfo;
 import android.media.MediaScannerConnection;
 import android.os.Environment;
-import android.os.Handler;
-import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -24,7 +19,6 @@ import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.estimote.sdk.Beacon;
@@ -76,13 +70,13 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     // TODO: replace "<major>:<minor>" strings to match your own beacons.
     static {
         Map<String, List<String>> placesByBeacons = new HashMap<>();
-        placesByBeacons.put("9682:5279", new ArrayList<String>() {{
+        placesByBeacons.put("51275:27582", new ArrayList<String>() {{
             add("Cama");
             // se lee: "cama" esta mas cercana
             // al beacon con major 9682 y minor 5279
         }});
 
-        placesByBeacons.put("15322:52340", new ArrayList<String>() {{
+        placesByBeacons.put("11637:25398", new ArrayList<String>() {{
             add("Escritorio");
         }});
 
@@ -295,7 +289,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
         if(v.equals(startStopButton)) {
             if (idEditText.getText().length() == 0) {
-                displayDialog("ID", "Ingresa el ID del participante");
+                displayDialog("Atencion", "Ingresa el ID del participante");
             } else {
                 if (startStopButton.getText().equals("EMPEZAR")){
                     // Start recording
