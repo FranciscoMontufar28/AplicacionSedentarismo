@@ -41,24 +41,38 @@ public class Contador extends Thread{
         while (running) {
             try {
                 Log.i("haur","while "+running);
-                Thread.sleep(1000);
-                if (cont>0 && running) {
-                    Log.e("haur", "cont>0 "+running);
-                    cont--;
-                    Message msg = handler.obtainMessage();
-                    msg.what = SECOND;
-                    msg.arg1 = cont;
-                    if(cont==0){
+                Thread.sleep(100);
+                    //Log.e("haur", "cont>0 "+running);
+                    if (contSeg>0 && running==true){
+                        contSeg--;
+                        Message msg = handler.obtainMessage();
+                        msg.what = SECOND;
+                        msg.arg1 = contMin;
+                        msg.arg2 = contSeg;
+                        handler.sendMessage(msg);
+                        Log.e("casos", "caso1");
+                    }else {
+                        contMin--;
+                        contSeg=60;
+                        Message msg = handler.obtainMessage();
+                        msg.what = SECOND;
+                        msg.arg1 = contMin;
+                        msg.arg2 = contSeg;
+                        handler.sendMessage(msg);
+                        Log.e("casos", "caso2");}
 
-                        msg.what = STOP;
-                        running = false;
-                    }
+                        if(contMin==0 && contSeg==0){
+                            Message msg = handler.obtainMessage();
+                            msg.arg1 = contMin;
+                            msg.arg2 = contSeg;
+                            msg.what = STOP;
+                            running=false;
+                            handler.sendMessage(msg);
+                            Log.e("casos", "caso3");
+                        }
 
-                    handler.sendMessage(msg);
-                }
-                else{
-                    Log.e("haur", "");
-                }
+
+
 
             } catch (InterruptedException e) {
                 Log.e("haur", "thread catch");

@@ -17,10 +17,16 @@ public class EntrenamientoActivity extends AppCompatActivity implements View.OnC
         public void handleMessage(Message msg){
             if (msg.what == Contador.SECOND)
             {
-                int second = msg.arg1;
-                reloj.setText(""+second);
+                int second = msg.arg2;
+                int minutes = msg.arg1;
+                if (second<10) {
+                    reloj.setText("0" + minutes + ":" + "0"+second);
+                }else {
+                reloj.setText("0"+minutes+":"+second);}
+
             }else {
                 reloj.setText("00:00");
+
             }
         }
 
@@ -42,6 +48,7 @@ public class EntrenamientoActivity extends AppCompatActivity implements View.OnC
 
         btnIniciar.setOnClickListener(this);
         btnParar.setOnClickListener(this);
+        reloj.setText("03"+":"+"00");
 
         if (thread == null){
             thread = new Contador(handler);
