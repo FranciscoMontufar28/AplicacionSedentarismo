@@ -14,6 +14,8 @@ import android.media.MediaScannerConnection;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Environment;
+import android.os.Handler;
+import android.os.Message;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.View;
@@ -52,6 +54,7 @@ import java.util.TimeZone;
 import java.util.UUID;
 import java.util.ArrayList;
 
+import me.jbakita.pebbledatalogging.Background.Contador;
 import weka.gui.Main;
 
 /**
@@ -75,7 +78,43 @@ public class MainActivity extends Activity implements SensorEventListener, View.
     RadioButton radioButton_eating;
     RadioButton radioButton_driving;
     RadioButton radioButton_transport;
+    TextView reloj;
+    Contador thread;
 
+    Handler handler = new Handler(){
+        @Override
+        public void handleMessage(Message msg){
+            if (msg.what == Contador.SECOND)
+            {
+                int second = msg.arg2;
+                int minutes = msg.arg1;
+                if (second<10) {
+                    reloj.setText("0" + minutes + ":" + "0"+second);
+                }else {
+                    reloj.setText("0"+minutes+":"+second);}
+
+            }else {
+                reloj.setText("00:00");
+                Toast.makeText(MainActivity.this, "Actividad Entrenada", Toast.LENGTH_LONG).show();
+                reloj.setText("03"+":"+"00");
+                // End recording
+                startStopButton.setText("EMPEZAR");
+                saveButton.setEnabled(true);
+                // stop beacon detection
+                beaconManager.stopRanging(region);
+                // stop accelerometer recording
+                SensorManager mSensorManager=(SensorManager) getSystemService(SENSOR_SERVICE);
+                List<android.hardware.Sensor> sensors = mSensorManager.getSensorList(android.hardware.Sensor.TYPE_ACCELEROMETER);
+                //mSensorManager.unregisterListener(this);
+                mAccelerometer = null;
+                thread = null;
+            }
+        }
+
+    };
+
+
+    //region Utilizado por ESTIMOTE
     /********************** Utilizado por ESTIMOTE *******************************************/
 
     int current_location=0, current_location2=0;
@@ -85,16 +124,19 @@ public class MainActivity extends Activity implements SensorEventListener, View.
     // TODO: replace "<major>:<minor>" strings to match your own beacons.
     static {
         Map<String, List<String>> placesByBeacons = new HashMap<>();
-        placesByBeacons.put("9682:5279", new ArrayList<String>() {{
+        placesByBeacons.put("51275:57582", new ArrayList<String>() {{
             add("Cama");
             // se lee: "cama" esta mas cercana
             // al beacon con major 9682 y minor 5279
         }});
 
-        placesByBeacons.put("15322:52340", new ArrayList<String>() {{
+        placesByBeacons.put("11637:25398", new ArrayList<String>() {{
             add("Escritorio");
         }});
 
+        placesByBeacons.put("52330:18150", new ArrayList<String>() {{
+            add("Carro");
+        }});
 
         PLACES_BY_BEACONS = Collections.unmodifiableMap(placesByBeacons);
     }
@@ -110,6 +152,8 @@ public class MainActivity extends Activity implements SensorEventListener, View.
     private BeaconManager beaconManager;
     private Region region;
     /*****************************************************************/
+    //endregion
+
 
 
     @Override
@@ -117,16 +161,7 @@ public class MainActivity extends Activity implements SensorEventListener, View.
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // Get listview
-        //ListView sensorsView = (ListView)findViewById(R.id.listView);
-        // Setup progress bar
-        //ProgressBar progressBar = (ProgressBar)findViewById(R.id.progressBar);
-        //sensorsView.setEmptyView(progressBar);
-
-         // Add listview display adapter
-        //sensorsView.setAdapter(adapter);
-
-        // Setup start/stop button
+        //region findViewById y configuracion de botones
         startStopButton = (Button)findViewById(R.id.startstopbutton);
         startStopButton.setOnClickListener(this);
         startStopButton.setText("EMPEZAR");
@@ -142,6 +177,7 @@ public class MainActivity extends Activity implements SensorEventListener, View.
         saveButton.setText("GUARDAR");
         saveButton.setEnabled(false);
 
+
         // Setup ID edit text
 
         idEditText = (EditText)findViewById(R.id.editText_id);
@@ -153,6 +189,11 @@ public class MainActivity extends Activity implements SensorEventListener, View.
         radioButton_driving = (RadioButton)findViewById(R.id.radioButton_driving);
         radioButton_transport = (RadioButton)findViewById(R.id.radioButton_transport);
 
+        reloj = (TextView) findViewById(R.id.RelojConteo);
+        //endregion
+
+        reloj.setText("03"+":"+"00");
+
         this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         Log.d("LOG", "aplicacion iniciada");
 
@@ -163,6 +204,9 @@ public class MainActivity extends Activity implements SensorEventListener, View.
         super.onResume();
         //estimote requires turn on BT and to access GPS location?
         SystemRequirementsChecker.checkWithDefaultDialogs(this);
+
+
+        //region Estimote
         /****************************** ESTIMOTE ***********************************/
 
         beaconManager = new BeaconManager(this);
@@ -190,6 +234,10 @@ public class MainActivity extends Activity implements SensorEventListener, View.
                             Log.d("LUGAR", "Escritorio");
                             current_location = 2;
                         }
+                        if (String.valueOf(place).equals("[Carro]")) {
+                            Log.d("LUGAR", "Carro");
+                            current_location = 3;
+                        }
                     } else {
                         current_location = 0;
                     }
@@ -208,6 +256,10 @@ public class MainActivity extends Activity implements SensorEventListener, View.
                             if (String.valueOf(place2).equals("[Escritorio]")) {
                                 Log.d("LUGAR", "Escritorio");
                                 current_location2 = 2;
+                            }
+                            if (String.valueOf(place).equals("[Carro]")) {
+                                Log.d("LUGAR", "Carro");
+                                current_location = 3;
                             }
                         } else {
                             current_location2 = 0;
@@ -233,6 +285,9 @@ public class MainActivity extends Activity implements SensorEventListener, View.
         });
         region = new Region("ranged region", UUID.fromString("b9407f30-f5f8-466e-aff9-25556b57fe6d"), null, null);
         /*****************************************************************/
+        //endregion
+
+
         beaconManager.connect(new BeaconManager.ServiceReadyCallback() {
             @Override
             public void onServiceReady() {
@@ -264,11 +319,8 @@ public class MainActivity extends Activity implements SensorEventListener, View.
             Log.d("CREACION DE ARCHIVO","el archivo EXISTE");
             try {
 
-                // Create the file in the <activity name>-<sensor name>-<system time>.csv format
-
                 FileOutputStream outputStream = new FileOutputStream(file);
                 // Write the colunm headers
-                //outputStream.write("id,Time(ms),X(mG),Y(mG),Z(mG),Location,Location2,Classification\n".getBytes());
                 outputStream.write(buff.getBytes());
                 outputStream.close();
                 // Workaround for Android bug #38282
@@ -289,7 +341,6 @@ public class MainActivity extends Activity implements SensorEventListener, View.
                 File file1 = new File(dir, filename);
                 FileOutputStream outputStream = new FileOutputStream(file1);
                 // Write the colunm headers
-                //outputStream.write("id,Time(ms),X(mG),Y(mG),Z(mG),Location,Location2,Classification\n".getBytes());
                 outputStream.write(buff.getBytes());
                 outputStream.close();
                 // Workaround for Android bug #38282
@@ -371,6 +422,11 @@ public class MainActivity extends Activity implements SensorEventListener, View.
 
                 }
 
+                if (thread == null){
+                    thread = new Contador(handler);
+                    thread.start();
+                }
+
                 startStopButton.setText("PARAR");
                 saveButton.setEnabled(false);
             } else {
@@ -384,6 +440,7 @@ public class MainActivity extends Activity implements SensorEventListener, View.
                 List<android.hardware.Sensor> sensors = mSensorManager.getSensorList(android.hardware.Sensor.TYPE_ACCELEROMETER);
                 mSensorManager.unregisterListener(this);
                 mAccelerometer = null;
+
 
             }
 

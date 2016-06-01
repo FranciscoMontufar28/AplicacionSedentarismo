@@ -31,12 +31,19 @@
         android:layout_alignRight="@+id/radioGroup_Activities"
         android:layout_alignEnd="@+id/radioGroup_Activities" />
 
-    <Space
-        android:layout_width="16dp"
+
+    <TextView
+        android:id="@+id/RelojConteo"
+        android:gravity="center"
+        android:textColor="#000"
+        android:textSize="100sp"
+        android:text="02:00"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
-        android:focusable="false"
-        android:id="@+id/space" />
+        android:layout_above="@+id/modelgeneratebutton"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true" />
+
 
     <TextView
         android:layout_width="wrap_content"
@@ -118,5 +125,7 @@
         android:id="@+id/modelgeneratebutton"
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true" />
+
+
 
 </RelativeLayout>

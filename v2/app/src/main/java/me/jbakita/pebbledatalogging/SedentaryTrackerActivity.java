@@ -33,13 +33,13 @@ public class SedentaryTrackerActivity extends Activity implements SensorEventLis
     ArrayAdapter<String> adaptador;
     List behavior = new ArrayList<String>();
 
-    double[] x = new double[250];
-    double[] y = new double[250];
-    double[] z = new double[250];
-    double[] ubication1 = new double[250];
-    double[] ubication2 = new double[250];
+    double[] x = new double[150];
+    double[] y = new double[150];
+    double[] z = new double[150];
+    double[] ubication1 = new double[150];
+    double[] ubication2 = new double[150];
 
-
+    //region Utilizando Estimote
     /********************** Utilizado por ESTIMOTE *******************************************/
 
     int current_location=0, current_location2=0;
@@ -49,15 +49,20 @@ public class SedentaryTrackerActivity extends Activity implements SensorEventLis
     // TODO: replace "<major>:<minor>" strings to match your own beacons.
     static {
         Map<String, List<String>> placesByBeacons = new HashMap<>();
-        placesByBeacons.put("9682:5279", new ArrayList<String>() {{
+        placesByBeacons.put("51275:57582", new ArrayList<String>() {{
             add("Cama");
             // se lee: "cama" esta mas cercana
             // al beacon con major 9682 y minor 5279
         }});
 
-        placesByBeacons.put("15322:52340", new ArrayList<String>() {{
+        placesByBeacons.put("11637:25398", new ArrayList<String>() {{
             add("Escritorio");
         }});
+
+        placesByBeacons.put("52330:18150", new ArrayList<String>() {{
+            add("Carro");
+        }});
+
 
 
         PLACES_BY_BEACONS = Collections.unmodifiableMap(placesByBeacons);
@@ -74,7 +79,7 @@ public class SedentaryTrackerActivity extends Activity implements SensorEventLis
     private BeaconManager beaconManager;
     private Region region;
     /*****************************************************************/
-
+    //endregion
 
 
     @Override
@@ -139,6 +144,10 @@ public class SedentaryTrackerActivity extends Activity implements SensorEventLis
                             Log.d("LUGAR", "Escritorio");
                             current_location = 2;
                         }
+                        if (String.valueOf(place).equals("[Carro]")) {
+                            Log.d("LUGAR", "Carro");
+                            current_location = 3;
+                        }
                     } else {
                         current_location = 0;
                     }
@@ -157,6 +166,10 @@ public class SedentaryTrackerActivity extends Activity implements SensorEventLis
                             if (String.valueOf(place2).equals("[Escritorio]")) {
                                 Log.d("LUGAR", "Escritorio");
                                 current_location2 = 2;
+                            }
+                            if (String.valueOf(place).equals("[Carro]")) {
+                                Log.d("LUGAR", "Carro");
+                                current_location = 3;
                             }
                         } else {
                             current_location2 = 0;
@@ -208,7 +221,7 @@ public class SedentaryTrackerActivity extends Activity implements SensorEventLis
     public void onSensorChanged(SensorEvent event) {
 
         //cada 10 segundos hago clasificacion
-        if(i<250){
+        if(i<150){
 
             String x_read = String.valueOf(event.values[SensorManager.DATA_X]);
             String y_read = String.valueOf(event.values[SensorManager.DATA_Y]);

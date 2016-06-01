@@ -13,7 +13,7 @@ import java.io.PrintWriter;
 
 public class FeatureExtraction {
 
-    public static int number_of_lines = 250;
+    public static int number_of_lines = 150;
     float[] xAvr;
     float[] yAvr;
     float[] zAvr;
