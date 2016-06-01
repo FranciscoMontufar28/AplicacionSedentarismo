@@ -1,0 +1,12 @@
+<component name="libraryTable">
+  <library name="pebblekit-3.1.0">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/app/build/intermediates/exploded-aar/com.getpebble/pebblekit/3.1.0/jars/classes.jar!/" />
+      <root url="file://$PROJECT_DIR$/app/build/intermediates/exploded-aar/com.getpebble/pebblekit/3.1.0/res" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.getpebble/pebblekit/3.1.0/72a7e62a97721f0480218f68aa4d8faebe12d390/pebblekit-3.1.0-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>
